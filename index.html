@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    a{
+      margin: 0 .5rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div>
+      <p>
+        <input type="text" v-model.trim="input">
+        <a href="javascript:;" @click="handCreate">Create</a>
+      </p>
+      <ol>
+        <li v-for="item in contents" :key="item.id">{{item.content}}
+          <a href="javascript:;" >Update</a>
+          <a href="javascript:;" @click="handDelete(item.id)">Delete</a>
+        </li>
+      </ol>
+    </div>
+  </div>
+  <script src="https://unpkg.com/vue@next"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.25.0/axios.js"></script>
+  <script>
+    // json-server data.json
+    const { ref, onMounted, reactive } = Vue;
+    const App = {
+      setup() {
+        const contents = ref([]);
+        const input = ref('');
+
+        onMounted(() => {
+          axios.get('http://localhost:3000/contents').then((res) => {
+            contents.value = res.data
+          })
+        })
+
+        const handCreate = () => {
+          if(!input.value) return;
+          axios.post("http://localhost:3000/contents", {
+            content: input.value
+          }).then((res) => {
+            input.value='';
+            contents.value.push(res.data);
+          })
+        }
+
+        const handDelete = (id) => {
+          axios.delete(`http://localhost:3000/contents/${id}`).then((res)=> {
+            axios.get('http://localhost:3000/contents').then((res) => {
+            contents.value = res.data
+          })
+          })
+        }
+        
+
+        return {  
+          contents,
+          handCreate,
+          input,
+          handDelete
+        };
+      },
+    };
+    Vue.createApp(App).mount("#app");
+  </script>
+</body>
+</html>
